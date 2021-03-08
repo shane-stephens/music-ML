@@ -209,11 +209,12 @@ X = all[['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 'i
 Y = all[['playlist']]
 X_train, X_final, Y_train, Y_final = train_test_split(X,Y, test_size=.3, random_state=37, stratify=Y)
 
-#CLASSIFYING BIGLY
+#CLASSIFYING TIME!
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 
+#random state of 37 in honor of my little league career
 classifier = RandomForestClassifier(n_estimators = 20, random_state=37)
 classifier.fit(X_train,Y_train)
 y_pred=classifier.predict(X_final)
