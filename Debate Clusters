@@ -1,0 +1,103 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct  1 09:44:38 2020
+
+@author: shane37
+"""
+
+# This project took scraped news article headlines, and created clusters out of them to try and 
+# discern topics the public was concerned about regarding the presidential debates. The articles
+# were split into those relating to Biden, and those relating to Trump, then sentiment scored to
+# provide usable insight. This is the clustering portion of the project. The end results gave me
+# 6 unique clusters. At the time (early October, 2020), I felt these clusters were very accurate and
+# representative of the American conciousness at the time. Below is the code used for clustering.
+
+#Import/Clean Data from scraped dataframe
+import pandas as pd
+
+df = pd.read_csv (r'C:\Users\shane37\Downloads\S25.csv')
+
+#Remove useless columns, and also some stuff the API probably shouldn't have included
+df = df[df['Source'] != 'YouTube'] 
+df = df[['Title', 'Source']]
+df.Title.fillna('', inplace=True)
+df.dropna(inplace=True)
+df.drop_duplicates(keep=False,inplace=True) 
+
+#Importing useful packages
+
+import nltk
+import re
+import numpy as np
+import nltk
+nltk.download('punkt')
+import nltk
+nltk.download('stopwords')
+
+#Getting the basic stop words- will have to add to this later
+stop_words = nltk.corpus.stopwords.words('english')
+
+def normalize_document(doc):
+    # lower case and remove special characters\whitespaces
+    doc = re.sub(r'[^a-zA-Z0-9\s]', '', doc, re.I|re.A)
+    doc = doc.lower()
+    doc = doc.strip()
+    # tokenize document
+    tokens = nltk.word_tokenize(doc)
+    # filter stopwords out of document
+    filtered_tokens = [token for token in tokens if token not in stop_words]
+    # re-create document from filtered tokens
+    doc = ' '.join(filtered_tokens)
+    return doc
+
+normalize_corpus = np.vectorize(normalize_document)
+
+norm_corpus = normalize_corpus(list(df['Title']))
+len(norm_corpus)
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+#drop common words associated with debates along with normal stop words (A, the, etc.)
+#TF-IDF Features
+stop_words = stop_words + ['trump', 'biden', '2020', 'presidential', 'presidential race', ' white house', 'Trump', 'Biden', 'debate', 'joe', 'donald', 'president', 'trumpbiden']
+cv = CountVectorizer(ngram_range=(1, 2), min_df=10, max_df=0.8, stop_words=stop_words)
+cv_matrix = cv.fit_transform(norm_corpus)
+cv_matrix.shape
+
+#KMEANS Clustering!!!
+from sklearn.cluster import KMeans
+
+NUM_CLUSTERS = 6
+km = KMeans(n_clusters=NUM_CLUSTERS, max_iter=10000, n_init=50, random_state=42).fit(cv_matrix)
+km
+
+from collections import Counter
+Counter(km.labels_)
+
+df['kmeans_cluster'] = km.labels_
+
+news_clusters = (df[['Title', 'kmeans_cluster', 'Source']]
+                  .sort_values(by=['kmeans_cluster', 'Source'], 
+                               ascending=False)
+                  .groupby('kmeans_cluster').head(20))
+news_clusters = news_clusters.copy(deep=True)
+
+
+feature_names = cv.get_feature_names()
+topn_features = 15
+ordered_centroids = km.cluster_centers_.argsort()[:, ::-1]
+
+# get key features for each cluster
+# get news belonging to each cluster
+for cluster_num in range(NUM_CLUSTERS):
+    key_features = [feature_names[index] 
+                        for index in ordered_centroids[cluster_num, :topn_features]]
+    news = news_clusters[news_clusters['kmeans_cluster'] == cluster_num]['Title'].values.tolist()
+    print('CLUSTER #'+str(cluster_num+1))
+    print('Key Features:', key_features)
+    print('News:', news)
+    print('-'*80)
+
+# Now we have our 6 key clusters: The fight over the supreme court, race and violence in America,
+# development of a COVID-19 vaccine, feasability of rapid tests, the security of the upcoming election
+# and Amy Coney Barrett's track record.
