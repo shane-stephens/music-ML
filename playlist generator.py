@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Feb  2 16:59:07 2021
+# This script is a way for me to generate my own personal discover weekly Spotify playlist based on a current playlist I already have. I also added the
+# option for the user to input their current mood. For example, if I had a playlist of hip-hop songs I liked, and input that I was sad, the algorithm would
+# create and generate within Spotify a playlist full of sad hip songs tailored to my needs. 
 
-@author: shane37
-"""
+# The funcitonal way the algorithm works is as follows. First, I download all the song data from Spotify's API which includes abstract musical features such
+# as "danceability", "valence", "acousticness", etc. These variables become my predictors, with the number of plays the user has on the song in the past year 
+# being the predictor. I then pitted multiple machine learning algorithms against each other, with the algorithm that performed the "best" being the winner.
+# From this, I get a playlist of equal size made up of all new and unique songs. 
+
 
 #SENTIMENT ANALYSIS
 
