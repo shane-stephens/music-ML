@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jan 26 19:12:44 2021
-
-@author: shane37
-"""
+# I'm particularly proud of the final classifier accuracy of this project (74%), considering I have 4 groups. I set about trying to use machine learning to 
+# define the abstract "vibe" that I felt when I listened to music. I had 4 distinct playlists that each had songs spanning across the same genres. 
+# They were: music I would study to, music I would listen to at night, music I would listen to with my windows down in the car, and music I would work out to. 
+# Since these playlists all included hip-hop, rock, and R&B songs, the algorithm wasn't merely splitting based on genre; I was trying to pick up on the features
+# that my brain was subconciously using to categorize these songs. Would my algorithm be able to place songs into the correct buckets?
+# While the sample size is small, I'm continuously adding to the playlists and re- running my code, honing the algorithm in on the specific features that 
+# my brain is processing. 
 
 
 import spotipy
@@ -13,12 +14,13 @@ import time
 from pandasql import sqldf
 
 
-client_id = '' #insert your client id
-client_secret = '' # insert your client secret id here
+client_id = '' #insert client id
+client_secret = '' # insert client secret id
 
 client_credentials_manager = SpotifyClientCredentials(client_id, client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
+#Getting the tracks/features for each playlist
 
 def getTrackIDs(user, playlist_id):
     ids = []
@@ -27,6 +29,9 @@ def getTrackIDs(user, playlist_id):
         track = item['track']
         ids.append(track['id'])
     return ids
+
+#Since I was experimenting with different playlists, I just downloaded each one seperately. There's a faster way to do this, but I was lazy. The next lines
+# are repeating code to download each playlist and put it together in a dataframe. Line #210 is where the ML starts.
 
 #windows
 
@@ -202,6 +207,7 @@ all = pd.concat([windows,hoop,study,night])
 music_feature=all[['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo', 'length']]
 
 
+# NOW WE START THE MACHINE LEARNING!
 
 #Split
 from sklearn.model_selection import train_test_split
@@ -245,6 +251,7 @@ print('Accuracy:', metrics.accuracy_score(Y_final, y_pred))
 
 estimator = final.estimators_[5]
 
+#Visualizing the features in my decision tree. One of the perks of a decision tree is its relative interpretability compared to other ML algorithms. 
 
 from sklearn.tree import export_graphviz
 # Export as dot file
